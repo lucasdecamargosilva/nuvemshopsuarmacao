@@ -1221,7 +1221,37 @@
             e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
             checkPhoneStep();
         });
-        // Sem limite — sem contador de provas restantes
+        // ── Contador de provas restantes (debounced) ──
+        let _provasDebounce;
+        async function _checkProvasRestantes() {
+            const _els = document.querySelectorAll('.q-provas-msg');
+            if (!_els.length) return;
+            const nums = phoneInput.value.replace(/\D/g, '');
+            const phoneOk = isValidBRPhone(nums);
+            const phone = phoneOk ? '55' + nums : '0';
+            try {
+                const r = await fetch(WEBHOOK_CHECK_LIMIT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                });
+                const d = await r.json();
+                const LIMIT = d.limit || 5;
+                const used = Math.max(d.phone_count || 0, d.ip_count || 0, d.count || 0);
+                const restantes = Math.max(0, LIMIT - used);
+                if (restantes > 0) {
+                    const _txt = restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje');
+                    _els.forEach(el => { el.textContent = _txt; el.classList.remove('is-warn'); });
+                } else {
+                    _els.forEach(el => { el.textContent = 'Limite de ' + LIMIT + ' provas atingido — pague R$1 via PIX para mais uma.'; el.classList.add('is-warn'); });
+                }
+            } catch(_) { _els.forEach(el => { el.textContent = ''; el.classList.remove('is-warn'); }); }
+        }
+        phoneInput.addEventListener('input', () => {
+            clearTimeout(_provasDebounce);
+            _provasDebounce = setTimeout(_checkProvasRestantes, 600);
+        });
+        setTimeout(_checkProvasRestantes, 300);
 
 
         function checkPhoneStep() {
@@ -1554,8 +1584,25 @@
             phoneInput.classList.remove('is-error');
             if (faceFrame) faceFrame.classList.remove('is-error');
 
+            const phone = '55' + phoneInput.value.replace(/\D/g, '');
             genBtn.disabled = true;
-            // Sem limite — gera sempre
+
+            try {
+                const resp = await fetch(WEBHOOK_CHECK_LIMIT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                });
+                const data = await resp.json();
+                if (data.limited) {
+                    genBtn.disabled = false;
+                    createPixAndPoll();
+                    return;
+                }
+            } catch (_) {
+                // se falhar, libera (evita bloquear por erro de rede)
+            }
+
             genBtn.disabled = false;
             runGeneration();
         };
