@@ -51,7 +51,7 @@
     // ===============================================
     // 0. CHUMBAR A API KEY AQUI DIRETO NO CÓDIGO
     // ===============================================
-    const apiKey = "pl_live_ee72ce2f8ee6928603f4b51222a44dba403dc35e2efe9944094ce2d1cc7937d3";
+    const apiKey = "pl_live_b3db0d81429712d5c68a47d05927b84a7a2a75151a94cabbba05338f68306721";
     window.PROVOU_LEVOU_API_KEY = apiKey;
 
     const WEBHOOK_PROVA = 'https://n8n.segredosdodrop.com/webhook/gerador-oculos';
