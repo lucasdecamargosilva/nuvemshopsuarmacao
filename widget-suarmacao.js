@@ -54,7 +54,7 @@
     const apiKey = "pl_live_b3db0d81429712d5c68a47d05927b84a7a2a75151a94cabbba05338f68306721";
     window.PROVOU_LEVOU_API_KEY = apiKey;
 
-    const WEBHOOK_PROVA = 'https://n8n.segredosdodrop.com/webhook/gerador-oculos';
+    const WEBHOOK_PROVA = 'https://n8n.segredosdodrop.com/webhook/gerador-oculos-vertex;
     const WEBHOOK_PIX = 'https://n8n.segredosdodrop.com/webhook/cacife-pix';
     const WEBHOOK_PIX_STATUS = 'https://n8n.segredosdodrop.com/webhook/cacife-pix-status';
     const WEBHOOK_CHECK_LIMIT = 'https://n8n.segredosdodrop.com/webhook/suarmacao-check-limit';
