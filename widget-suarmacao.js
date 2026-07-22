@@ -1103,7 +1103,11 @@
         openBtn.innerHTML = stampImageHTML;
 
 
-        const imgContainers = ['.js-product-slide', '.product-image-column', '.js-swiper-product', '[data-store^="product-image-"]', '.product__media-wrapper', '.product-gallery__media', '.product__media', '.product-image-main', '.product-media-container', '[data-media-id]', '.product__media-item', '.product-gallery', '.product-single__media', '.media-gallery'];
+        // IMPORTANTE: ancorar no VIEWPORT estável da galeria (.js-swiper-product /
+        // .swiper-container), NÃO num slide individual (.js-product-slide). O botão dentro
+        // de um slide some de vista quando o swiper troca de foto/variante. O viewport fica
+        // fixo, então o botão continua visível sobre a foto atual. Slides ficam por último.
+        const imgContainers = ['.js-swiper-product', '.swiper-container', '[data-store^="product-image-"]', '.product__media-wrapper', '.product-media-container', '.product-image-column', '.product-gallery__media', '.product__media', '.product-image-main', '[data-media-id]', '.product-gallery', '.product-single__media', '.media-gallery', '.js-product-slide', '.product__media-item'];
 
         function tryPlaceTriggerBtn() {
             // 1ª prioridade: container que tenha <img> dentro (evita cair em slide de vídeo)
