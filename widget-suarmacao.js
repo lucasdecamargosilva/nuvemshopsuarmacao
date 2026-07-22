@@ -13,6 +13,8 @@
         var local = nums.length === 11 ? nums.slice(3) : nums.slice(2);
         if (/^(\d)\1+$/.test(local)) { setErr('N\u00famero n\u00e3o parece real — confira'); return false; }
         if (/(\d)\1{5,}/.test(local)) { setErr('N\u00famero n\u00e3o parece real — confira'); return false; }
+        // so 1-2 digitos distintos = fake (99996666, 54545454, 56565656)
+        if (new Set(local).size <= 2) { setErr('N\u00famero n\u00e3o parece real — confira'); return false; }
         if (/^(?:01234567|12345678|23456789|34567890|98765432|87654321|76543210|0123456789|1234567890)/.test(local)) { setErr('N\u00famero n\u00e3o parece real — confira'); return false; }
         return true;
     }
@@ -1239,6 +1241,23 @@
         }
 
         function extractImages() {
+            // Prioridade: imagem da variação selecionada (Nuvemshop marca com .js-active-variant).
+            // Sem isso a foto ficava travada na 1ª variante ao trocar de cor/modelo.
+            const activeVariantImgs = Array.from(document.querySelectorAll('.js-product-slide-img.js-active-variant'));
+            if (activeVariantImgs.length) {
+                const variantUrls = [];
+                activeVariantImgs.forEach(img => {
+                    let src = img.getAttribute('data-srcset') || img.dataset?.srcset || img.getAttribute('data-src') || img.src;
+                    if (!src) return;
+                    src = src.split(',')[0].trim().split(' ')[0];
+                    if (src.startsWith('//')) src = 'https:' + src;
+                    if (!src || src.includes('data:image') || src.includes('empty-placeholder')) return;
+                    const up = upgradeImgUrl(src);
+                    if (!variantUrls.includes(up)) variantUrls.push(up);
+                });
+                if (variantUrls.length) return variantUrls.slice(0, 4);
+            }
+
             const containersSelectors = '.js-product-slide, .product-image-column, .js-swiper-product, [data-store^="product-image-"], .product__media-wrapper, .product-gallery__media, .product__media, .product-image-main, .product-media-container, [data-media-id], .product__media-item, .product-gallery, .product-single__media, .media-gallery, [data-component="product.gallery"], .swiper-slide:not(.swiper-slide-duplicate), .slider-wrapper';
             const possibleContainers = Array.from(document.querySelectorAll(containersSelectors));
             let imgEls = [];
