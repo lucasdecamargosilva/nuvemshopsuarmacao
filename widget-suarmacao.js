@@ -1129,21 +1129,18 @@
             return false;
         }
 
-        if (!tryPlaceTriggerBtn()) {
-            // Container não pronto ainda (ex: após F5 no mobile).
-            // Observa DOM até 5s aguardando o container aparecer.
-            const observer = new MutationObserver(() => {
-                if (tryPlaceTriggerBtn()) observer.disconnect();
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-
-            setTimeout(() => {
-                observer.disconnect();
-                if (!openBtn.isConnected) {
-                    openBtn.style.cssText = 'position:fixed;bottom:30px;right:20px;top:auto;z-index:100;';
-                    document.body.appendChild(openBtn);
-                }
-            }, 5000);
+        // O Nuvemshop re-renderiza a galeria ao trocar foto/variante e REMOVE o botão
+        // injetado — por isso re-colocamos sempre (via ensurePLButtons, mais abaixo),
+        // em vez de posicionar uma vez só. Fallback fixo só após 5s sem container.
+        var _plTriggerTs = Date.now();
+        function ensureTriggerBtn() {
+            if (openBtn.isConnected && openBtn.dataset.plFixed !== '1') return; // já no lugar real
+            if (tryPlaceTriggerBtn()) { delete openBtn.dataset.plFixed; openBtn.style.cssText = ''; return; }
+            if (!openBtn.isConnected && (Date.now() - _plTriggerTs) > 5000) {
+                openBtn.style.cssText = 'position:fixed;bottom:30px;right:20px;top:auto;z-index:100;';
+                openBtn.dataset.plFixed = '1';
+                document.body.appendChild(openBtn);
+            }
         }
 
 
@@ -1183,16 +1180,26 @@
             openModal();
         });
 
-        // Posiciona acima do botão de compra
-        const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
-        if (buyBtn) {
-            buyBtn.parentNode.insertBefore(inlineBtn, buyBtn);
-        } else {
+        // Posiciona acima do botão de compra (idempotente — re-injeta se o Nuvemshop remover)
+        function ensureInlineBtn() {
+            if (inlineBtn.isConnected) return;
+            const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
+            if (buyBtn) { buyBtn.parentNode.insertBefore(inlineBtn, buyBtn); return; }
             const variantsContainer = document.querySelector('.js-product-variants');
-            if (variantsContainer) {
-                variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling);
-            }
+            if (variantsContainer) { variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling); }
         }
+
+        // ── Watcher persistente: mantém os DOIS botões contra os re-renders do Nuvemshop.
+        //    Trocar a foto/variante do produto apagava o botão do provador — agora ele volta. ──
+        function ensurePLButtons() { try { ensureTriggerBtn(); } catch (e) {} try { ensureInlineBtn(); } catch (e) {} }
+        ensurePLButtons();
+        var _plBtnsDebounce = null;
+        var _plBtnsObserver = new MutationObserver(function () {
+            if (_plBtnsDebounce) return;
+            _plBtnsDebounce = setTimeout(function () { _plBtnsDebounce = null; ensurePLButtons(); }, 150);
+        });
+        _plBtnsObserver.observe(document.body, { childList: true, subtree: true });
+        setInterval(ensurePLButtons, 1500);
         const genBtn      = document.getElementById('q-btn-generate');
         const nextBtn     = null; // single-step flow — no next button
         const phoneStep   = null;
