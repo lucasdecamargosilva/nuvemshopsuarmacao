@@ -2488,7 +2488,7 @@
 
         let pixPaymentId = null;
 
-        let selectedProductImgUrl = '';
+        let selectedProductImgUrl = ''; let _plDefaultImg = '';
 
 
 
@@ -2674,7 +2674,7 @@
 
 
 
-            selectedProductImgUrl = imgs[0] || '';
+            selectedProductImgUrl = imgs[0] || ''; _plDefaultImg = selectedProductImgUrl;
 
 
 
@@ -4142,7 +4142,7 @@ const fd = new FormData();
 
                     // Produto com várias cores: vai SÓ a foto escolhida no seletor do provador (as fotos
                     // de rosto/packshot da galeria podem ser de outra cor e a IA misturava).
-                    if (plSelVarImg() && prodImg) allProdImgs = [prodImg];
+                    if (prodImg && (plSelVarImg() || prodImg !== _plDefaultImg)) allProdImgs = [prodImg]; // cliente trocou a foto no seletor = só ela
                     allProdImgs = allProdImgs.slice(0, 4);
 
                     console.log('[PL SuaArmacao] Enviando', allProdImgs.length, 'fotos do produto');
