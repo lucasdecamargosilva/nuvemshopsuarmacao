@@ -2520,9 +2520,15 @@
             var u = v && v.image_url ? String(v.image_url) : ''; if (u.indexOf('//') === 0) u = 'https:' + u; return u;
         } catch (e) { return ''; }
     }
-        function extractImages() {
-            // cor escolhida pelo cliente vence a galeria (que mistura todas as cores)
-            if (!document.querySelector('.js-product-slide-img.js-active-variant')) { const _plv = plSelVarImg(); if (_plv) return [_plv]; }
+        // Galeria completa, mas com a foto da COR selecionada na página em 1º (vira a pré-selecionada
+        // no seletor do provador). O cliente pode escolher outra foto lá dentro — essa é a que vale.
+        function extractImages(limit) {
+            const b = _plExtractBase(limit) || [];
+            const v = plSelVarImg(); if (!v) return b;
+            const k = function (u) { return String(u || '').split('?')[0].replace(/-\d+-\d+\.(webp|jpe?g|png)$/i, ''); };
+            return [v].concat(b.filter(function (u) { return k(u) !== k(v); }));
+        }
+        function _plExtractBase() {
 
             // Prioridade: imagem da variação selecionada (Nuvemshop marca com .js-active-variant).
 
@@ -4134,6 +4140,9 @@ const fd = new FormData();
 
                     } catch (e) {}
 
+                    // Produto com várias cores: vai SÓ a foto escolhida no seletor do provador (as fotos
+                    // de rosto/packshot da galeria podem ser de outra cor e a IA misturava).
+                    if (plSelVarImg() && prodImg) allProdImgs = [prodImg];
                     allProdImgs = allProdImgs.slice(0, 4);
 
                     console.log('[PL SuaArmacao] Enviando', allProdImgs.length, 'fotos do produto');
