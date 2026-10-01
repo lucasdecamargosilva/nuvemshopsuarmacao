@@ -2536,7 +2536,7 @@
 
             const activeVariantImgs = Array.from(document.querySelectorAll('.js-product-slide-img.js-active-variant'));
 
-            if (activeVariantImgs.length) {
+            if (activeVariantImgs.length && !plSelVarImg()) {
 
                 const variantUrls = [];
 
